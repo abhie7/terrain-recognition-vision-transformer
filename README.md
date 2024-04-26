@@ -1,6 +1,6 @@
 # Deep Learning for Terrain Recognition
 **Team Triumph (Team No. 8)**  
-*Tinkerthon 2.0 | 5th April 2024*
+*Tinkerthon 2.0 | 5th April 2024 | First Runner's Up*
 
 ## Table of Contents
 1. [Introduction](#1-introduction)
