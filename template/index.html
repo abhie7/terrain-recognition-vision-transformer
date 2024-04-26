@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoSense</title>
+    <link rel="shortcut icon" href="../static/favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>GeoSense</h1>
+
+        <div class="video-container">
+            <img src="" alt="" id="webcamStream" hidden/>
+        </div>
+
+        <div class="prediction-text" id="prediction">Predicted Label: {{pred}}</div>
+
+        <button id="refresh-btn">Start Camera</button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script>
+        const btn = document.getElementById("refresh-btn")
+        const img = document.getElementById("webcamStream")
+        let video = false
+        btn.addEventListener("click", () => {
+            video = !video
+            if (video){
+                img.hidden = false
+                btn.innerText = "Stop Camera"
+                startAutoRefresh()
+            }else{
+                img.hidden = true
+                btn.innerText = "Start Camera"
+                clearInterval(autoRefreshInterval)
+                sendData()
+            }
+        })
+
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(function(){
+                var timestamp = new Date().getTime()
+                fetch('{{ url_for("camera") }}') // Fetch image and prediction data
+                .then(response => response.json())
+                .then(data => {
+                    // console.log(data); // Debugging purposes
+                    updateUI(data); // Call function to update UI with received data
+                })
+                .catch(error => console.error('Error fetching data:', error));
+            }, 50)
+        }
+
+        function updateUI(data) {
+            document.getElementById("prediction").innerText = "Predicted Label: " + data.text_prediction; // Update prediction text
+
+            // Update image source
+            img.src = "data:image/jpeg;base64," + data.image;
+        }
+
+        let autoRefreshInterval = null
+
+        function sendData() {
+            // Get form data
+            var formData = {
+                CloseCam: "True"
+            };
+
+            // Convert form data to JSON
+            var jsonData = JSON.stringify(formData);
+
+            // Send JSON data to Flask server
+            fetch('{{url_for("stopcam")}}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: jsonData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data);
+                // Do something with the response if needed
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+    <script>
+        var button = document.getElementById('btn');
+        var stream = null;
+        // Do not remove
+        document.getElementById('refresh-btn').addEventListener('click', function() {
+            this.classList.toggle('clicked');
+            document.body.classList.toggle('clicked');
+        });
+    </script>
+</body>
+</html>
